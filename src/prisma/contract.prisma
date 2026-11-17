@@ -1,0 +1,88 @@
+// use prisma-8
+
+// Estado del voucher. Se guarda como texto en PostgreSQL.
+enum VoucherState {
+  @@type("pg/text@1")
+  Valid    = "valid"
+  Consumed = "consumed"
+  Expired  = "expired" // vencido por fecha
+  Revoked  = "revoked" // anulado manualmente por el negocio
+}
+
+// Cuenta raíz. Sin password: la autenticación la maneja la librería de auth.
+model Business {
+  id        Uuid      @id @onCreate(uuid())
+  name      String
+  email     String   @unique
+  createdAt DateTime @default(now()) @onCreate(now())
+
+  customers Customer[]
+  services  Service[]
+  rewards   Reward[]
+  vouchers  Voucher[]
+}
+
+// Clientes sin cuenta: cada negocio tiene su propia lista.
+model Customer {
+  id         Uuid      @id @onCreate(uuid())
+  name       String
+  email      String
+  points     Int      @default(0)
+  businessId Uuid
+  createdAt  DateTime @default(now()) @onCreate(now())
+
+  business Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  vouchers Voucher[]
+
+  // El mismo email puede existir en negocios distintos, pero no repetido dentro de uno.
+  @@unique([businessId, email])
+}
+
+// Servicios que el cliente puede consumir; cada uno otorga puntos.
+model Service {
+  id         Uuid      @id @onCreate(uuid())
+  name       String
+  points     Int // puntos que otorga al consumirlo
+  businessId Uuid
+  createdAt  DateTime @default(now()) @onCreate(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
+}
+
+// Recompensa canjeable por puntos.
+model Reward {
+  id             Uuid      @id @onCreate(uuid())
+  name           String
+  points         Int // costo en puntos
+  expirationDays Int // días de validez del voucher generado
+  businessId     Uuid
+  createdAt      DateTime @default(now()) @onCreate(now())
+
+  business Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  vouchers Voucher[]
+
+  @@index([businessId])
+}
+
+// Voucher que recibe el cliente al canjear una recompensa.
+model Voucher {
+  id             Uuid      @id @onCreate(uuid())
+  rewardId       Uuid
+  customerId     Uuid
+  businessId     Uuid
+  expirationDate DateTime
+  state          VoucherState @default(Valid)
+  createdAt      DateTime     @default(now()) @onCreate(now())
+
+  // Restrict: no se puede borrar una recompensa que ya tiene vouchers emitidos.
+  reward   Reward   @relation(fields: [rewardId], references: [id], onDelete: Restrict)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId, state])
+  @@index([customerId])
+  // Para el job que marca vencidos y envía recordatorios.
+  @@index([state, expirationDate])
+}
