@@ -8,6 +8,6 @@ export default auth.middleware({
 export const config = {
   matcher: [
     // Protected routes requiring authentication
-    "/account/:path*",
+    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\..*|auth/sign-in(?:/|$)|auth/sign-up(?:/|$)|api/auth(?:/|$)).*)",
   ],
 };
