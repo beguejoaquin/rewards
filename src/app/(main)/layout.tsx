@@ -8,8 +8,8 @@ import {
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
   NavigationMenuPositioner,
-} from "@/components/ui/navigation-menu";
-import { Separator } from "@/components/ui/separator";
+} from "@/ui/components/shadcn/navigation-menu";
+import { Separator } from "@/ui/components/shadcn/separator";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
