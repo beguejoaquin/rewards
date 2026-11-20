@@ -44,17 +44,7 @@ import {
 
 export async function GET() {
   try {
-    const data = await Promise.all(
-      rewards.map(
-        async (reward) =>
-          await createReward(businessId, {
-            name: reward.name,
-            points: reward.points,
-            expirationDays: reward.expiration_days,
-          }),
-      ),
-    );
-    //const data = await listServices(businessId);
+    const data = "Test";
     return Response.json({ data: data });
   } catch (error) {
     return Response.json({ error }, { status: 500 });
