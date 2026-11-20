@@ -1,11 +1,14 @@
 import type { Models } from "@/prisma/contract";
 
+export const ownerId = "b258b784-83ae-4c05-9f55-95de0d535fe9";
+
 export const businessId = "aaa0af7a-b870-44a5-b7a7-aed5b5e75cfd";
 
 export const business = {
   id: businessId,
   name: "Greez Studio",
   email: "greezstudio@gmail.com",
+  ownerId: ownerId,
 };
 
 export const customers = [
