@@ -1,10 +1,10 @@
 import { auth } from "@/lib/auth/server";
 import Link from "next/link";
+import { connection } from "next/server";
+import { Suspense } from "react";
 
-// Server components using auth methods must be rendered dynamically
-export const dynamic = "force-dynamic";
-
-export default async function Home() {
+async function SessionContent() {
+  await connection();
   const { data: session } = await auth.getSession();
 
   if (session?.user) {
@@ -20,21 +20,32 @@ export default async function Home() {
 
   return (
     <div className="flex flex-col justify-center items-center gap-2 bg-gray-900 min-h-screen">
-      <h1 className="mb-4 font-bold text-4xl">Not logged in</h1>
-      <div className="flex gap-2 item-center">
-        <Link
-          href="/auth/sign-up"
-          className="inline-flex text-indigo-400 text-lg hover:underline"
-        >
-          Sign-up
-        </Link>
-        <Link
-          href="/auth/sign-in"
-          className="inline-flex text-indigo-400 text-lg hover:underline"
-        >
-          Sign-in
-        </Link>
-      </div>
+      <Link
+        href="/auth/sign-up"
+        className="text-indigo-400 text-lg hover:underline"
+      >
+        Sign-up
+      </Link>
+      <Link
+        href="/auth/sign-in"
+        className="text-indigo-400 text-lg hover:underline"
+      >
+        Sign-in
+      </Link>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex justify-center items-center bg-gray-900 min-h-screen">
+          Loading...
+        </div>
+      }
+    >
+      <SessionContent />
+    </Suspense>
   );
 }
