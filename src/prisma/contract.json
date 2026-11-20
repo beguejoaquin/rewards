@@ -62,8 +62,8 @@
                 "value": "admin"
               },
               {
-                "name": "user",
-                "value": "user"
+                "name": "owner",
+                "value": "owner"
               }
             ]
           }
@@ -105,7 +105,7 @@
               "ownerId": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/text@1",
+                  "codecId": "pg/uuid@1",
                   "kind": "scalar"
                 }
               }
@@ -780,8 +780,8 @@
                   "nullable": false
                 },
                 "ownerId": {
-                  "codecId": "pg/text@1",
-                  "dataType": "pg/text",
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
                   "nullable": false
                 }
               },
@@ -1070,8 +1070,8 @@
             "user": {
               "checks": [
                 {
-                  "expression": "\"type\" IN ('admin', 'user')",
-                  "name": "user_type_check_6db48f2a",
+                  "expression": "\"type\" IN ('admin', 'owner')",
+                  "name": "user_type_check_875cd709",
                   "prefix": "user_type_check"
                 }
               ],
@@ -1328,7 +1328,7 @@
               "kind": "valueSet",
               "values": [
                 "admin",
-                "user"
+                "owner"
               ]
             }
           }
@@ -1337,7 +1337,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "296e35bd90f4fd002bb0352d26aa519fc5319cdff077c104082c41150245ff6d"
+    "storageHash": "1678f6091817ecb060df8e2ac8ecd7622b2f73186438b91b2abb07c76b1d097f"
   },
   "execution": {
     "executionHash": "0d6103efbd84a6f825af91ee3e6b9e4e32d7271617fb753f5424b95c35c20d61",

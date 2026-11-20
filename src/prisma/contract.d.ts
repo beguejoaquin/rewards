@@ -23,7 +23,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'296e35bd90f4fd002bb0352d26aa519fc5319cdff077c104082c41150245ff6d'>;
+  StorageHashBase<'1678f6091817ecb060df8e2ac8ecd7622b2f73186438b91b2abb07c76b1d097f'>;
 export type ExecutionHash =
   ExecutionHashBase<'0d6103efbd84a6f825af91ee3e6b9e4e32d7271617fb753f5424b95c35c20d61'>;
 export type ProfileHash =
@@ -279,7 +279,7 @@ type FieldTypeOverrides = {
   readonly public: {
     readonly models: {
       readonly User: {
-        readonly type: { readonly output: 'admin' | 'user'; readonly input: 'admin' | 'user' };
+        readonly type: { readonly output: 'admin' | 'owner'; readonly input: 'admin' | 'owner' };
       };
       readonly Voucher: {
         readonly state: {
@@ -309,7 +309,7 @@ export type FieldInputTypes = FieldTypesFromDomain<
 type ColumnTypeOverrides = {
   readonly public: {
     readonly user: {
-      readonly type: { readonly output: 'admin' | 'user'; readonly input: 'admin' | 'user' };
+      readonly type: { readonly output: 'admin' | 'owner'; readonly input: 'admin' | 'owner' };
     };
     readonly voucher: {
       readonly state: {
@@ -462,8 +462,8 @@ type ContractBase = Omit<
                   readonly many: false;
                 };
                 readonly ownerId: {
-                  readonly dataType: 'pg/text';
-                  readonly codecId: 'pg/text@1';
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
                   readonly nullable: false;
                   readonly many: false;
                 };
@@ -864,7 +864,7 @@ type ContractBase = Omit<
           readonly valueSet: {
             readonly user_type: {
               readonly kind: 'valueSet';
-              readonly values: readonly ['admin', 'user'];
+              readonly values: readonly ['admin', 'owner'];
             };
             readonly VoucherState: {
               readonly kind: 'valueSet';
@@ -916,7 +916,7 @@ type ContractBase = Omit<
               };
               readonly ownerId: {
                 readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
               };
             };
             readonly relations: {
@@ -1340,7 +1340,7 @@ type ContractBase = Omit<
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
               { readonly name: 'admin'; readonly value: 'admin' },
-              { readonly name: 'user'; readonly value: 'user' },
+              { readonly name: 'owner'; readonly value: 'owner' },
             ];
           };
         };
@@ -1353,7 +1353,7 @@ type ContractBase = Omit<
           ];
           readonly user_type: readonly [
             { readonly name: 'admin'; readonly value: 'admin' },
-            { readonly name: 'user'; readonly value: 'user' },
+            { readonly name: 'owner'; readonly value: 'owner' },
           ];
         };
       };
