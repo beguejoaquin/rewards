@@ -23,9 +23,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'7ccaee82d231450c69aff4f96c86a1a619655a0d2dd3858b41b8a250bc7f682b'>;
+  StorageHashBase<'296e35bd90f4fd002bb0352d26aa519fc5319cdff077c104082c41150245ff6d'>;
 export type ExecutionHash =
-  ExecutionHashBase<'a91762677937f39e7358d4c99d8336cb02bce4160f7558daed39d15b557bf5e2'>;
+  ExecutionHashBase<'0d6103efbd84a6f825af91ee3e6b9e4e32d7271617fb753f5424b95c35c20d61'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -278,6 +278,9 @@ type ParameterizedOutputTypeFunctions = PgParameterizedOutputTypes;
 type FieldTypeOverrides = {
   readonly public: {
     readonly models: {
+      readonly User: {
+        readonly type: { readonly output: 'admin' | 'user'; readonly input: 'admin' | 'user' };
+      };
       readonly Voucher: {
         readonly state: {
           readonly output: 'valid' | 'consumed' | 'expired' | 'revoked';
@@ -305,7 +308,10 @@ export type FieldInputTypes = FieldTypesFromDomain<
 >;
 type ColumnTypeOverrides = {
   readonly public: {
-    readonly Voucher: {
+    readonly user: {
+      readonly type: { readonly output: 'admin' | 'user'; readonly input: 'admin' | 'user' };
+    };
+    readonly voucher: {
       readonly state: {
         readonly output: 'valid' | 'consumed' | 'expired' | 'revoked';
         readonly input: 'valid' | 'consumed' | 'expired' | 'revoked';
@@ -334,11 +340,13 @@ export namespace Models {
     email: FieldOutputTypes['public']['Business']['email'];
     id: FieldOutputTypes['public']['Business']['id'];
     name: FieldOutputTypes['public']['Business']['name'];
+    ownerId: FieldOutputTypes['public']['Business']['ownerId'];
     customers: public_Customer[];
+    owner: public_User;
     rewards: public_Reward[];
     services: public_Service[];
     vouchers: public_Voucher[];
-    readonly [RelationKeys]?: 'customers' | 'rewards' | 'services' | 'vouchers';
+    readonly [RelationKeys]?: 'customers' | 'owner' | 'rewards' | 'services' | 'vouchers';
   };
   export type public_Customer = {
     businessId: FieldOutputTypes['public']['Customer']['businessId'];
@@ -371,6 +379,16 @@ export namespace Models {
     business: public_Business;
     readonly [RelationKeys]?: 'business';
   };
+  export type public_User = {
+    createdAt: FieldOutputTypes['public']['User']['createdAt'];
+    email: FieldOutputTypes['public']['User']['email'];
+    id: FieldOutputTypes['public']['User']['id'];
+    lastName: FieldOutputTypes['public']['User']['lastName'];
+    name: FieldOutputTypes['public']['User']['name'];
+    type: FieldOutputTypes['public']['User']['type'];
+    business: public_Business[];
+    readonly [RelationKeys]?: 'business';
+  };
   export type public_Voucher = {
     businessId: FieldOutputTypes['public']['Voucher']['businessId'];
     createdAt: FieldOutputTypes['public']['Voucher']['createdAt'];
@@ -392,6 +410,7 @@ export declare const models: {
     Customer: Models.public_Customer;
     Reward: Models.public_Reward;
     Service: Models.public_Service;
+    User: Models.public_User;
     Voucher: Models.public_Voucher;
   };
 };
@@ -414,7 +433,7 @@ type ContractBase = Omit<
         readonly kind: 'postgres-schema';
         readonly entries: {
           readonly table: {
-            readonly Business: {
+            readonly business: {
               columns: {
                 readonly createdAt: {
                   readonly dataType: 'pg/timestamptz';
@@ -442,13 +461,39 @@ type ContractBase = Omit<
                   readonly nullable: false;
                   readonly many: false;
                 };
+                readonly ownerId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
               };
               primaryKey: { readonly columns: readonly ['id'] };
-              uniques: readonly [{ readonly columns: readonly ['email'] }];
-              indexes: readonly [];
-              foreignKeys: readonly [];
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'business_ownerId_idx_e2d0c1ef';
+                  readonly prefix: 'business_ownerId_idx';
+                  readonly columns: readonly ['ownerId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'business';
+                    readonly columns: readonly ['ownerId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'user';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
             };
-            readonly Customer: {
+            readonly customer: {
               columns: {
                 readonly businessId: {
                   readonly dataType: 'pg/uuid';
@@ -497,8 +542,8 @@ type ContractBase = Omit<
               uniques: readonly [{ readonly columns: readonly ['businessId', 'email'] }];
               indexes: readonly [
                 {
-                  readonly name: 'Customer_businessId_idx_ae0ed511';
-                  readonly prefix: 'Customer_businessId_idx';
+                  readonly name: 'customer_businessId_idx_ae0ed511';
+                  readonly prefix: 'customer_businessId_idx';
                   readonly columns: readonly ['businessId'];
                   readonly unique: false;
                 },
@@ -507,18 +552,18 @@ type ContractBase = Omit<
                 {
                   readonly source: {
                     readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'Customer';
+                    readonly tableName: 'customer';
                     readonly columns: readonly ['businessId'];
                   };
                   readonly target: {
                     readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'Business';
+                    readonly tableName: 'business';
                     readonly columns: readonly ['id'];
                   };
                 },
               ];
             };
-            readonly Reward: {
+            readonly reward: {
               columns: {
                 readonly businessId: {
                   readonly dataType: 'pg/uuid';
@@ -563,8 +608,8 @@ type ContractBase = Omit<
               uniques: readonly [];
               indexes: readonly [
                 {
-                  readonly name: 'Reward_businessId_idx_ae0ed511';
-                  readonly prefix: 'Reward_businessId_idx';
+                  readonly name: 'reward_businessId_idx_ae0ed511';
+                  readonly prefix: 'reward_businessId_idx';
                   readonly columns: readonly ['businessId'];
                   readonly unique: false;
                 },
@@ -573,18 +618,18 @@ type ContractBase = Omit<
                 {
                   readonly source: {
                     readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'Reward';
+                    readonly tableName: 'reward';
                     readonly columns: readonly ['businessId'];
                   };
                   readonly target: {
                     readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'Business';
+                    readonly tableName: 'business';
                     readonly columns: readonly ['id'];
                   };
                 },
               ];
             };
-            readonly Service: {
+            readonly service: {
               columns: {
                 readonly businessId: {
                   readonly dataType: 'pg/uuid';
@@ -623,8 +668,8 @@ type ContractBase = Omit<
               uniques: readonly [];
               indexes: readonly [
                 {
-                  readonly name: 'Service_businessId_idx_ae0ed511';
-                  readonly prefix: 'Service_businessId_idx';
+                  readonly name: 'service_businessId_idx_ae0ed511';
+                  readonly prefix: 'service_businessId_idx';
                   readonly columns: readonly ['businessId'];
                   readonly unique: false;
                 },
@@ -633,18 +678,64 @@ type ContractBase = Omit<
                 {
                   readonly source: {
                     readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'Service';
+                    readonly tableName: 'service';
                     readonly columns: readonly ['businessId'];
                   };
                   readonly target: {
                     readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'Business';
+                    readonly tableName: 'business';
                     readonly columns: readonly ['id'];
                   };
                 },
               ];
             };
-            readonly Voucher: {
+            readonly user: {
+              columns: {
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+                readonly email: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly lastName: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly name: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly type: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['email'] }];
+              indexes: readonly [];
+              foreignKeys: readonly [];
+            };
+            readonly voucher: {
               columns: {
                 readonly businessId: {
                   readonly dataType: 'pg/uuid';
@@ -700,32 +791,32 @@ type ContractBase = Omit<
               uniques: readonly [];
               indexes: readonly [
                 {
-                  readonly name: 'Voucher_businessId_idx_ae0ed511';
-                  readonly prefix: 'Voucher_businessId_idx';
+                  readonly name: 'voucher_businessId_idx_ae0ed511';
+                  readonly prefix: 'voucher_businessId_idx';
                   readonly columns: readonly ['businessId'];
                   readonly unique: false;
                 },
                 {
-                  readonly name: 'Voucher_businessId_state_idx_75d886fb';
-                  readonly prefix: 'Voucher_businessId_state_idx';
+                  readonly name: 'voucher_businessId_state_idx_75d886fb';
+                  readonly prefix: 'voucher_businessId_state_idx';
                   readonly columns: readonly ['businessId', 'state'];
                   readonly unique: false;
                 },
                 {
-                  readonly name: 'Voucher_customerId_idx_b2a8a46c';
-                  readonly prefix: 'Voucher_customerId_idx';
+                  readonly name: 'voucher_customerId_idx_b2a8a46c';
+                  readonly prefix: 'voucher_customerId_idx';
                   readonly columns: readonly ['customerId'];
                   readonly unique: false;
                 },
                 {
-                  readonly name: 'Voucher_rewardId_idx_3d17b6e4';
-                  readonly prefix: 'Voucher_rewardId_idx';
+                  readonly name: 'voucher_rewardId_idx_3d17b6e4';
+                  readonly prefix: 'voucher_rewardId_idx';
                   readonly columns: readonly ['rewardId'];
                   readonly unique: false;
                 },
                 {
-                  readonly name: 'Voucher_state_expirationDate_idx_e23c7a3f';
-                  readonly prefix: 'Voucher_state_expirationDate_idx';
+                  readonly name: 'voucher_state_expirationDate_idx_e23c7a3f';
+                  readonly prefix: 'voucher_state_expirationDate_idx';
                   readonly columns: readonly ['state', 'expirationDate'];
                   readonly unique: false;
                 },
@@ -734,36 +825,36 @@ type ContractBase = Omit<
                 {
                   readonly source: {
                     readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'Voucher';
+                    readonly tableName: 'voucher';
                     readonly columns: readonly ['rewardId'];
                   };
                   readonly target: {
                     readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'Reward';
+                    readonly tableName: 'reward';
                     readonly columns: readonly ['id'];
                   };
                 },
                 {
                   readonly source: {
                     readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'Voucher';
+                    readonly tableName: 'voucher';
                     readonly columns: readonly ['customerId'];
                   };
                   readonly target: {
                     readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'Customer';
+                    readonly tableName: 'customer';
                     readonly columns: readonly ['id'];
                   };
                 },
                 {
                   readonly source: {
                     readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'Voucher';
+                    readonly tableName: 'voucher';
                     readonly columns: readonly ['businessId'];
                   };
                   readonly target: {
                     readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'Business';
+                    readonly tableName: 'business';
                     readonly columns: readonly ['id'];
                   };
                 },
@@ -771,6 +862,10 @@ type ContractBase = Omit<
             };
           };
           readonly valueSet: {
+            readonly user_type: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['admin', 'user'];
+            };
             readonly VoucherState: {
               readonly kind: 'valueSet';
               readonly values: readonly ['valid', 'consumed', 'expired', 'revoked'];
@@ -786,11 +881,12 @@ type ContractBase = Omit<
   readonly target: 'postgres';
   readonly targetFamily: 'sql';
   readonly roots: {
-    readonly Business: { readonly namespace: 'public' & NamespaceId; readonly model: 'Business' };
-    readonly Customer: { readonly namespace: 'public' & NamespaceId; readonly model: 'Customer' };
-    readonly Reward: { readonly namespace: 'public' & NamespaceId; readonly model: 'Reward' };
-    readonly Service: { readonly namespace: 'public' & NamespaceId; readonly model: 'Service' };
-    readonly Voucher: { readonly namespace: 'public' & NamespaceId; readonly model: 'Voucher' };
+    readonly business: { readonly namespace: 'public' & NamespaceId; readonly model: 'Business' };
+    readonly customer: { readonly namespace: 'public' & NamespaceId; readonly model: 'Customer' };
+    readonly reward: { readonly namespace: 'public' & NamespaceId; readonly model: 'Reward' };
+    readonly service: { readonly namespace: 'public' & NamespaceId; readonly model: 'Service' };
+    readonly user: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
+    readonly voucher: { readonly namespace: 'public' & NamespaceId; readonly model: 'Voucher' };
   };
   readonly domain: {
     readonly namespaces: {
@@ -818,6 +914,10 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
+              readonly ownerId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
             };
             readonly relations: {
               readonly customers: {
@@ -829,6 +929,15 @@ type ContractBase = Omit<
                 readonly on: {
                   readonly localFields: readonly ['id'];
                   readonly targetFields: readonly ['businessId'];
+                };
+              };
+              readonly owner: {
+                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['ownerId'];
+                  readonly targetFields: readonly ['id'];
                 };
               };
               readonly rewards: {
@@ -866,13 +975,14 @@ type ContractBase = Omit<
               };
             };
             readonly storage: {
-              readonly table: 'Business';
+              readonly table: 'business';
               readonly namespaceId: 'public';
               readonly fields: {
                 readonly createdAt: { readonly column: 'createdAt' };
                 readonly email: { readonly column: 'email' };
                 readonly id: { readonly column: 'id' };
                 readonly name: { readonly column: 'name' };
+                readonly ownerId: { readonly column: 'ownerId' };
               };
             };
           };
@@ -933,7 +1043,7 @@ type ContractBase = Omit<
               };
             };
             readonly storage: {
-              readonly table: 'Customer';
+              readonly table: 'customer';
               readonly namespaceId: 'public';
               readonly fields: {
                 readonly businessId: { readonly column: 'businessId' };
@@ -1002,7 +1112,7 @@ type ContractBase = Omit<
               };
             };
             readonly storage: {
-              readonly table: 'Reward';
+              readonly table: 'reward';
               readonly namespaceId: 'public';
               readonly fields: {
                 readonly businessId: { readonly column: 'businessId' };
@@ -1056,7 +1166,7 @@ type ContractBase = Omit<
               };
             };
             readonly storage: {
-              readonly table: 'Service';
+              readonly table: 'service';
               readonly namespaceId: 'public';
               readonly fields: {
                 readonly businessId: { readonly column: 'businessId' };
@@ -1064,6 +1174,63 @@ type ContractBase = Omit<
                 readonly id: { readonly column: 'id' };
                 readonly name: { readonly column: 'name' };
                 readonly points: { readonly column: 'points' };
+              };
+            };
+          };
+          readonly User: {
+            readonly fields: {
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+              readonly email: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly lastName: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly name: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly type: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: {
+              readonly business: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Business';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['ownerId'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'user';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly email: { readonly column: 'email' };
+                readonly id: { readonly column: 'id' };
+                readonly lastName: { readonly column: 'lastName' };
+                readonly name: { readonly column: 'name' };
+                readonly type: { readonly column: 'type' };
               };
             };
           };
@@ -1145,7 +1312,7 @@ type ContractBase = Omit<
               };
             };
             readonly storage: {
-              readonly table: 'Voucher';
+              readonly table: 'voucher';
               readonly namespaceId: 'public';
               readonly fields: {
                 readonly businessId: { readonly column: 'businessId' };
@@ -1169,6 +1336,13 @@ type ContractBase = Omit<
               { readonly name: 'Revoked'; readonly value: 'revoked' },
             ];
           };
+          readonly user_type: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'admin'; readonly value: 'admin' },
+              { readonly name: 'user'; readonly value: 'user' },
+            ];
+          };
         };
         readonly enumMemberTypes?: {
           readonly VoucherState: readonly [
@@ -1176,6 +1350,10 @@ type ContractBase = Omit<
             { readonly name: 'Consumed'; readonly value: 'consumed' },
             { readonly name: 'Expired'; readonly value: 'expired' },
             { readonly name: 'Revoked'; readonly value: 'revoked' },
+          ];
+          readonly user_type: readonly [
+            { readonly name: 'admin'; readonly value: 'admin' },
+            { readonly name: 'user'; readonly value: 'user' },
           ];
         };
       };
@@ -1221,7 +1399,7 @@ type ContractBase = Omit<
             readonly params: { readonly precision: 3 };
           };
           readonly ref: {
-            readonly entry: 'Business';
+            readonly entry: 'business';
             readonly field: 'createdAt';
             readonly namespace: 'public';
           };
@@ -1229,7 +1407,7 @@ type ContractBase = Omit<
         {
           readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
           readonly ref: {
-            readonly entry: 'Business';
+            readonly entry: 'business';
             readonly field: 'id';
             readonly namespace: 'public';
           };
@@ -1241,7 +1419,7 @@ type ContractBase = Omit<
             readonly params: { readonly precision: 3 };
           };
           readonly ref: {
-            readonly entry: 'Customer';
+            readonly entry: 'customer';
             readonly field: 'createdAt';
             readonly namespace: 'public';
           };
@@ -1249,7 +1427,7 @@ type ContractBase = Omit<
         {
           readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
           readonly ref: {
-            readonly entry: 'Customer';
+            readonly entry: 'customer';
             readonly field: 'id';
             readonly namespace: 'public';
           };
@@ -1261,7 +1439,7 @@ type ContractBase = Omit<
             readonly params: { readonly precision: 3 };
           };
           readonly ref: {
-            readonly entry: 'Reward';
+            readonly entry: 'reward';
             readonly field: 'createdAt';
             readonly namespace: 'public';
           };
@@ -1269,7 +1447,7 @@ type ContractBase = Omit<
         {
           readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
           readonly ref: {
-            readonly entry: 'Reward';
+            readonly entry: 'reward';
             readonly field: 'id';
             readonly namespace: 'public';
           };
@@ -1281,7 +1459,7 @@ type ContractBase = Omit<
             readonly params: { readonly precision: 3 };
           };
           readonly ref: {
-            readonly entry: 'Service';
+            readonly entry: 'service';
             readonly field: 'createdAt';
             readonly namespace: 'public';
           };
@@ -1289,7 +1467,15 @@ type ContractBase = Omit<
         {
           readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
           readonly ref: {
-            readonly entry: 'Service';
+            readonly entry: 'service';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'user';
             readonly field: 'id';
             readonly namespace: 'public';
           };
@@ -1301,7 +1487,7 @@ type ContractBase = Omit<
             readonly params: { readonly precision: 3 };
           };
           readonly ref: {
-            readonly entry: 'Voucher';
+            readonly entry: 'voucher';
             readonly field: 'createdAt';
             readonly namespace: 'public';
           };
@@ -1309,7 +1495,7 @@ type ContractBase = Omit<
         {
           readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
           readonly ref: {
-            readonly entry: 'Voucher';
+            readonly entry: 'voucher';
             readonly field: 'id';
             readonly namespace: 'public';
           };

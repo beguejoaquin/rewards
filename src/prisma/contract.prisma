@@ -1,6 +1,11 @@
 // use prisma-8
 
-// Estado del voucher. Se guarda como texto en PostgreSQL.
+enum user_type {
+  @@type("pg/text@1")
+  admin
+  user
+}
+
 enum VoucherState {
   @@type("pg/text@1")
   Valid    = "valid"
@@ -9,20 +14,32 @@ enum VoucherState {
   Revoked  = "revoked" // anulado manualmente por el negocio
 }
 
-// Cuenta raíz. Sin password: la autenticación la maneja la librería de auth.
+model User {
+  id          Uuid      @id @onCreate(uuid())
+  email       String    @unique
+  name        String
+  lastName    String
+  createdAt   DateTime  @default(now())
+  type        user_type
+  business    Business[]
+  @@map("user")
+}
+
 model Business {
-  id        Uuid      @id @onCreate(uuid())
-  name      String
-  email     String   @unique
-  createdAt DateTime @default(now()) @onCreate(now())
+  id            Uuid      @id @onCreate(uuid())
+  ownerId       String
+  name          String
+  email         String    
+  createdAt     DateTime  @default(now()) @onCreate(now())
 
   customers Customer[]
   services  Service[]
   rewards   Reward[]
   vouchers  Voucher[]
+  owner     User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  @@map("business")
 }
 
-// Clientes sin cuenta: cada negocio tiene su propia lista.
 model Customer {
   id         Uuid      @id @onCreate(uuid())
   name       String
@@ -34,11 +51,12 @@ model Customer {
   business Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
   vouchers Voucher[]
 
-  // El mismo email puede existir en negocios distintos, pero no repetido dentro de uno.
+  // An email can exists across multiple bussiness, but i cant be repeated inside
+  // the same business.
   @@unique([businessId, email])
+  @@map("customer")
 }
 
-// Servicios que el cliente puede consumir; cada uno otorga puntos.
 model Service {
   id         Uuid      @id @onCreate(uuid())
   name       String
@@ -49,14 +67,14 @@ model Service {
   business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
 
   @@index([businessId])
+  @@map("service")
 }
 
-// Recompensa canjeable por puntos.
 model Reward {
   id             Uuid      @id @onCreate(uuid())
   name           String
-  points         Int // costo en puntos
-  expirationDays Int // días de validez del voucher generado
+  points         Int  
+  expirationDays Int 
   businessId     Uuid
   createdAt      DateTime @default(now()) @onCreate(now())
 
@@ -64,9 +82,9 @@ model Reward {
   vouchers Voucher[]
 
   @@index([businessId])
+  @@map("reward")
 }
 
-// Voucher que recibe el cliente al canjear una recompensa.
 model Voucher {
   id             Uuid      @id @onCreate(uuid())
   rewardId       Uuid
@@ -76,13 +94,14 @@ model Voucher {
   state          VoucherState @default(Valid)
   createdAt      DateTime     @default(now()) @onCreate(now())
 
-  // Restrict: no se puede borrar una recompensa que ya tiene vouchers emitidos.
+  // Restrict: a reward that has emmited vouchers cant be deleted.
   reward   Reward   @relation(fields: [rewardId], references: [id], onDelete: Restrict)
   customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
 
   @@index([businessId, state])
   @@index([customerId])
-  // Para el job que marca vencidos y envía recordatorios.
+  // For the job that marks expirations and sends reminders.
   @@index([state, expirationDate])
+  @@map("voucher")
 }

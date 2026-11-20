@@ -4,23 +4,27 @@
   "target": "postgres",
   "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
   "roots": {
-    "Business": {
+    "business": {
       "model": "Business",
       "namespace": "public"
     },
-    "Customer": {
+    "customer": {
       "model": "Customer",
       "namespace": "public"
     },
-    "Reward": {
+    "reward": {
       "model": "Reward",
       "namespace": "public"
     },
-    "Service": {
+    "service": {
       "model": "Service",
       "namespace": "public"
     },
-    "Voucher": {
+    "user": {
+      "model": "User",
+      "namespace": "public"
+    },
+    "voucher": {
       "model": "Voucher",
       "namespace": "public"
     }
@@ -47,6 +51,19 @@
               {
                 "name": "Revoked",
                 "value": "revoked"
+              }
+            ]
+          },
+          "user_type": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "admin",
+                "value": "admin"
+              },
+              {
+                "name": "user",
+                "value": "user"
               }
             ]
           }
@@ -84,6 +101,13 @@
                   "codecId": "pg/text@1",
                   "kind": "scalar"
                 }
+              },
+              "ownerId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
               }
             },
             "relations": {
@@ -99,6 +123,22 @@
                 },
                 "to": {
                   "model": "Customer",
+                  "namespace": "public"
+                }
+              },
+              "owner": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "ownerId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
                   "namespace": "public"
                 }
               },
@@ -161,10 +201,13 @@
                 },
                 "name": {
                   "column": "name"
+                },
+                "ownerId": {
+                  "column": "ownerId"
                 }
               },
               "namespaceId": "public",
-              "table": "Business"
+              "table": "business"
             }
           },
           "Customer": {
@@ -270,7 +313,7 @@
                 }
               },
               "namespaceId": "public",
-              "table": "Customer"
+              "table": "customer"
             }
           },
           "Reward": {
@@ -376,7 +419,7 @@
                 }
               },
               "namespaceId": "public",
-              "table": "Reward"
+              "table": "reward"
             }
           },
           "Service": {
@@ -457,7 +500,103 @@
                 }
               },
               "namespaceId": "public",
-              "table": "Service"
+              "table": "service"
+            }
+          },
+          "User": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "email": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "lastName": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "name": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "type": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "user_type",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              }
+            },
+            "relations": {
+              "business": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "ownerId"
+                  ]
+                },
+                "to": {
+                  "model": "Business",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "email": {
+                  "column": "email"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "lastName": {
+                  "column": "lastName"
+                },
+                "name": {
+                  "column": "name"
+                },
+                "type": {
+                  "column": "type"
+                }
+              },
+              "namespaceId": "public",
+              "table": "user"
             }
           },
           "Voucher": {
@@ -599,7 +738,7 @@
                 }
               },
               "namespaceId": "public",
-              "table": "Voucher"
+              "table": "voucher"
             }
           }
         }
@@ -611,7 +750,7 @@
       "public": {
         "entries": {
           "table": {
-            "Business": {
+            "business": {
               "columns": {
                 "createdAt": {
                   "codecId": "pg/timestamptz-date@1",
@@ -639,24 +778,53 @@
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
                   "nullable": false
+                },
+                "ownerId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
                 }
               },
-              "foreignKeys": [],
-              "indexes": [],
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "business_ownerId_idx_e2d0c1ef"
+                  },
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "ownerId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "business"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "user"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "ownerId"
+                  ],
+                  "name": "business_ownerId_idx_e2d0c1ef",
+                  "prefix": "business_ownerId_idx",
+                  "unique": false
+                }
+              ],
               "primaryKey": {
                 "columns": [
                   "id"
                 ]
               },
-              "uniques": [
-                {
-                  "columns": [
-                    "email"
-                  ]
-                }
-              ]
+              "uniques": []
             },
-            "Customer": {
+            "customer": {
               "columns": {
                 "businessId": {
                   "codecId": "pg/uuid@1",
@@ -703,7 +871,7 @@
               "foreignKeys": [
                 {
                   "index": {
-                    "name": "Customer_businessId_idx_ae0ed511"
+                    "name": "customer_businessId_idx_ae0ed511"
                   },
                   "onDelete": "cascade",
                   "source": {
@@ -711,14 +879,14 @@
                       "businessId"
                     ],
                     "namespaceId": "public",
-                    "tableName": "Customer"
+                    "tableName": "customer"
                   },
                   "target": {
                     "columns": [
                       "id"
                     ],
                     "namespaceId": "public",
-                    "tableName": "Business"
+                    "tableName": "business"
                   }
                 }
               ],
@@ -727,8 +895,8 @@
                   "columns": [
                     "businessId"
                   ],
-                  "name": "Customer_businessId_idx_ae0ed511",
-                  "prefix": "Customer_businessId_idx",
+                  "name": "customer_businessId_idx_ae0ed511",
+                  "prefix": "customer_businessId_idx",
                   "unique": false
                 }
               ],
@@ -746,7 +914,7 @@
                 }
               ]
             },
-            "Reward": {
+            "reward": {
               "columns": {
                 "businessId": {
                   "codecId": "pg/uuid@1",
@@ -789,7 +957,7 @@
               "foreignKeys": [
                 {
                   "index": {
-                    "name": "Reward_businessId_idx_ae0ed511"
+                    "name": "reward_businessId_idx_ae0ed511"
                   },
                   "onDelete": "cascade",
                   "source": {
@@ -797,14 +965,14 @@
                       "businessId"
                     ],
                     "namespaceId": "public",
-                    "tableName": "Reward"
+                    "tableName": "reward"
                   },
                   "target": {
                     "columns": [
                       "id"
                     ],
                     "namespaceId": "public",
-                    "tableName": "Business"
+                    "tableName": "business"
                   }
                 }
               ],
@@ -813,8 +981,8 @@
                   "columns": [
                     "businessId"
                   ],
-                  "name": "Reward_businessId_idx_ae0ed511",
-                  "prefix": "Reward_businessId_idx",
+                  "name": "reward_businessId_idx_ae0ed511",
+                  "prefix": "reward_businessId_idx",
                   "unique": false
                 }
               ],
@@ -825,7 +993,7 @@
               },
               "uniques": []
             },
-            "Service": {
+            "service": {
               "columns": {
                 "businessId": {
                   "codecId": "pg/uuid@1",
@@ -863,7 +1031,7 @@
               "foreignKeys": [
                 {
                   "index": {
-                    "name": "Service_businessId_idx_ae0ed511"
+                    "name": "service_businessId_idx_ae0ed511"
                   },
                   "onDelete": "cascade",
                   "source": {
@@ -871,14 +1039,14 @@
                       "businessId"
                     ],
                     "namespaceId": "public",
-                    "tableName": "Service"
+                    "tableName": "service"
                   },
                   "target": {
                     "columns": [
                       "id"
                     ],
                     "namespaceId": "public",
-                    "tableName": "Business"
+                    "tableName": "business"
                   }
                 }
               ],
@@ -887,8 +1055,8 @@
                   "columns": [
                     "businessId"
                   ],
-                  "name": "Service_businessId_idx_ae0ed511",
-                  "prefix": "Service_businessId_idx",
+                  "name": "service_businessId_idx_ae0ed511",
+                  "prefix": "service_businessId_idx",
                   "unique": false
                 }
               ],
@@ -899,12 +1067,80 @@
               },
               "uniques": []
             },
-            "Voucher": {
+            "user": {
+              "checks": [
+                {
+                  "expression": "\"type\" IN ('admin', 'user')",
+                  "name": "user_type_check_6db48f2a",
+                  "prefix": "user_type_check"
+                }
+              ],
+              "columns": {
+                "createdAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                },
+                "email": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "lastName": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "name": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "type": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "user_type",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "email"
+                  ]
+                }
+              ]
+            },
+            "voucher": {
               "checks": [
                 {
                   "expression": "\"state\" IN ('valid', 'consumed', 'expired', 'revoked')",
-                  "name": "Voucher_state_check_9cd1f174",
-                  "prefix": "Voucher_state_check"
+                  "name": "voucher_state_check_9cd1f174",
+                  "prefix": "voucher_state_check"
                 }
               ],
               "columns": {
@@ -967,7 +1203,7 @@
               "foreignKeys": [
                 {
                   "index": {
-                    "name": "Voucher_rewardId_idx_3d17b6e4"
+                    "name": "voucher_rewardId_idx_3d17b6e4"
                   },
                   "onDelete": "restrict",
                   "source": {
@@ -975,19 +1211,19 @@
                       "rewardId"
                     ],
                     "namespaceId": "public",
-                    "tableName": "Voucher"
+                    "tableName": "voucher"
                   },
                   "target": {
                     "columns": [
                       "id"
                     ],
                     "namespaceId": "public",
-                    "tableName": "Reward"
+                    "tableName": "reward"
                   }
                 },
                 {
                   "index": {
-                    "name": "Voucher_customerId_idx_b2a8a46c"
+                    "name": "voucher_customerId_idx_b2a8a46c"
                   },
                   "onDelete": "cascade",
                   "source": {
@@ -995,19 +1231,19 @@
                       "customerId"
                     ],
                     "namespaceId": "public",
-                    "tableName": "Voucher"
+                    "tableName": "voucher"
                   },
                   "target": {
                     "columns": [
                       "id"
                     ],
                     "namespaceId": "public",
-                    "tableName": "Customer"
+                    "tableName": "customer"
                   }
                 },
                 {
                   "index": {
-                    "name": "Voucher_businessId_idx_ae0ed511"
+                    "name": "voucher_businessId_idx_ae0ed511"
                   },
                   "onDelete": "cascade",
                   "source": {
@@ -1015,14 +1251,14 @@
                       "businessId"
                     ],
                     "namespaceId": "public",
-                    "tableName": "Voucher"
+                    "tableName": "voucher"
                   },
                   "target": {
                     "columns": [
                       "id"
                     ],
                     "namespaceId": "public",
-                    "tableName": "Business"
+                    "tableName": "business"
                   }
                 }
               ],
@@ -1031,8 +1267,8 @@
                   "columns": [
                     "businessId"
                   ],
-                  "name": "Voucher_businessId_idx_ae0ed511",
-                  "prefix": "Voucher_businessId_idx",
+                  "name": "voucher_businessId_idx_ae0ed511",
+                  "prefix": "voucher_businessId_idx",
                   "unique": false
                 },
                 {
@@ -1040,24 +1276,24 @@
                     "businessId",
                     "state"
                   ],
-                  "name": "Voucher_businessId_state_idx_75d886fb",
-                  "prefix": "Voucher_businessId_state_idx",
+                  "name": "voucher_businessId_state_idx_75d886fb",
+                  "prefix": "voucher_businessId_state_idx",
                   "unique": false
                 },
                 {
                   "columns": [
                     "customerId"
                   ],
-                  "name": "Voucher_customerId_idx_b2a8a46c",
-                  "prefix": "Voucher_customerId_idx",
+                  "name": "voucher_customerId_idx_b2a8a46c",
+                  "prefix": "voucher_customerId_idx",
                   "unique": false
                 },
                 {
                   "columns": [
                     "rewardId"
                   ],
-                  "name": "Voucher_rewardId_idx_3d17b6e4",
-                  "prefix": "Voucher_rewardId_idx",
+                  "name": "voucher_rewardId_idx_3d17b6e4",
+                  "prefix": "voucher_rewardId_idx",
                   "unique": false
                 },
                 {
@@ -1065,8 +1301,8 @@
                     "state",
                     "expirationDate"
                   ],
-                  "name": "Voucher_state_expirationDate_idx_e23c7a3f",
-                  "prefix": "Voucher_state_expirationDate_idx",
+                  "name": "voucher_state_expirationDate_idx_e23c7a3f",
+                  "prefix": "voucher_state_expirationDate_idx",
                   "unique": false
                 }
               ],
@@ -1087,6 +1323,13 @@
                 "expired",
                 "revoked"
               ]
+            },
+            "user_type": {
+              "kind": "valueSet",
+              "values": [
+                "admin",
+                "user"
+              ]
             }
           }
         },
@@ -1094,10 +1337,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "7ccaee82d231450c69aff4f96c86a1a619655a0d2dd3858b41b8a250bc7f682b"
+    "storageHash": "296e35bd90f4fd002bb0352d26aa519fc5319cdff077c104082c41150245ff6d"
   },
   "execution": {
-    "executionHash": "a91762677937f39e7358d4c99d8336cb02bce4160f7558daed39d15b557bf5e2",
+    "executionHash": "0d6103efbd84a6f825af91ee3e6b9e4e32d7271617fb753f5424b95c35c20d61",
     "mutations": {
       "defaults": [
         {
@@ -1109,7 +1352,7 @@
             }
           },
           "ref": {
-            "entry": "Business",
+            "entry": "business",
             "field": "createdAt",
             "namespace": "public"
           }
@@ -1120,7 +1363,7 @@
             "kind": "generator"
           },
           "ref": {
-            "entry": "Business",
+            "entry": "business",
             "field": "id",
             "namespace": "public"
           }
@@ -1134,7 +1377,7 @@
             }
           },
           "ref": {
-            "entry": "Customer",
+            "entry": "customer",
             "field": "createdAt",
             "namespace": "public"
           }
@@ -1145,7 +1388,7 @@
             "kind": "generator"
           },
           "ref": {
-            "entry": "Customer",
+            "entry": "customer",
             "field": "id",
             "namespace": "public"
           }
@@ -1159,7 +1402,7 @@
             }
           },
           "ref": {
-            "entry": "Reward",
+            "entry": "reward",
             "field": "createdAt",
             "namespace": "public"
           }
@@ -1170,7 +1413,7 @@
             "kind": "generator"
           },
           "ref": {
-            "entry": "Reward",
+            "entry": "reward",
             "field": "id",
             "namespace": "public"
           }
@@ -1184,7 +1427,7 @@
             }
           },
           "ref": {
-            "entry": "Service",
+            "entry": "service",
             "field": "createdAt",
             "namespace": "public"
           }
@@ -1195,7 +1438,18 @@
             "kind": "generator"
           },
           "ref": {
-            "entry": "Service",
+            "entry": "service",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "user",
             "field": "id",
             "namespace": "public"
           }
@@ -1209,7 +1463,7 @@
             }
           },
           "ref": {
-            "entry": "Voucher",
+            "entry": "voucher",
             "field": "createdAt",
             "namespace": "public"
           }
@@ -1220,7 +1474,7 @@
             "kind": "generator"
           },
           "ref": {
-            "entry": "Voucher",
+            "entry": "voucher",
             "field": "id",
             "namespace": "public"
           }
