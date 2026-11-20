@@ -1,6 +1,40 @@
+import { auth } from "@/lib/auth/server";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 
-export default function Home() {
-  return <div className="bg-gray-700"></div>;
+// Server components using auth methods must be rendered dynamically
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const { data: session } = await auth.getSession();
+
+  if (session?.user) {
+    return (
+      <div className="flex flex-col justify-center items-center gap-2 bg-gray-900 min-h-screen">
+        <h1 className="mb-4 text-4xl">
+          Logged in as{" "}
+          <span className="font-bold underline">{session.user.name}</span>
+        </h1>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col justify-center items-center gap-2 bg-gray-900 min-h-screen">
+      <h1 className="mb-4 font-bold text-4xl">Not logged in</h1>
+      <div className="flex gap-2 item-center">
+        <Link
+          href="/auth/sign-up"
+          className="inline-flex text-indigo-400 text-lg hover:underline"
+        >
+          Sign-up
+        </Link>
+        <Link
+          href="/auth/sign-in"
+          className="inline-flex text-indigo-400 text-lg hover:underline"
+        >
+          Sign-in
+        </Link>
+      </div>
+    </div>
+  );
 }
