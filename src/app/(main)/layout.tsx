@@ -1,34 +1,28 @@
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuIndicator,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-  navigationMenuTriggerStyle,
-  NavigationMenuPositioner,
-} from "@/ui/components/shadcn/navigation-menu";
-import { Separator } from "@/ui/components/shadcn/separator";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Scissor01Icon } from "@hugeicons/core-free-icons";
+import { BottomNav } from "@/ui/components/bottom-nav";
+
+// TODO: tomar el nombre del negocio activo cuando exista la selección de negocio.
+const businessName = "Greez Studio";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <div className="flex justify-center items-center bg-gray-500 w-full h-16">
-        <NavigationMenu>
-          <NavigationMenuList>
-            <NavigationMenuItem>
-              <NavigationMenuTrigger>
-                <h1 className="text-2xl">Greez Studio</h1>
-              </NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <NavigationMenuLink>Link</NavigationMenuLink>
-              </NavigationMenuContent>
-            </NavigationMenuItem>
-          </NavigationMenuList>
-        </NavigationMenu>
-      </div>
-      <main className="flex-1 p-4">{children}</main>
+      <header className="border-b">
+        <div className="mx-auto flex w-full max-w-2xl items-center gap-3 px-4 py-3">
+          <span
+            aria-hidden
+            className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground"
+          >
+            <HugeiconsIcon icon={Scissor01Icon} strokeWidth={1.5} className="size-5" />
+          </span>
+          <p className="font-heading text-xl font-semibold">{businessName}</p>
+        </div>
+      </header>
+      <main className="mx-auto w-full max-w-2xl flex-1 px-4 pt-6 pb-28">
+        {children}
+      </main>
+      <BottomNav />
     </>
   );
 }
