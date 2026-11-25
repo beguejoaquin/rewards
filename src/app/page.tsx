@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Scissor01Icon } from "@hugeicons/core-free-icons";
+import { GiftIcon } from "@hugeicons/core-free-icons";
 import { auth } from "@/lib/auth/server";
 import { Button } from "@/ui/components/shadcn/button";
 
@@ -24,33 +24,24 @@ async function RedirectIfSignedIn() {
 
 export default function Landing() {
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-10 px-4 py-16 sm:px-6">
+    <main className="flex flex-col flex-1 justify-center gap-10 mx-auto px-4 sm:px-6 py-16 w-full max-w-md">
       <div className="flex flex-col gap-6">
-        <span
-          aria-hidden
-          className="flex size-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground"
-        >
-          <HugeiconsIcon
-            icon={Scissor01Icon}
-            strokeWidth={1.5}
-            className="size-7"
-          />
-        </span>
         <div className="flex flex-col gap-3">
-          <h1 className="font-heading text-5xl font-semibold tracking-tight">
+          <h1 className="font-heading font-semibold text-5xl tracking-tight">
             Recompensas
           </h1>
-          <p className="text-lg text-muted-foreground">
-            Tus clientes suman puntos con cada servicio y los canjean por
-            recompensas. Tú llevas la cuenta desde un solo lugar.
+          <p className="text-muted-foreground text-lg">
+            Fidelizá a tus clientes con un sistema de recompensas simple: cada
+            servicio otorga puntos que pueden ser canjeados por recompensas, vos
+            controlas todo desde acá.
           </p>
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row">
+      <div className="flex sm:flex-row flex-col gap-3">
         <Button
           size="lg"
-          className="h-11 font-semibold sm:flex-1"
+          className="sm:flex-1 h-11 font-semibold"
           render={<Link href="/auth/sign-in" />}
           nativeButton={false}
         >
@@ -59,7 +50,7 @@ export default function Landing() {
         <Button
           variant="outline"
           size="lg"
-          className="h-11 bg-card font-semibold sm:flex-1"
+          className="sm:flex-1 bg-card h-11 font-semibold"
           render={<Link href="/auth/sign-up" />}
           nativeButton={false}
         >
