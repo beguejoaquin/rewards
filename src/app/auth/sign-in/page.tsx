@@ -9,15 +9,15 @@ export default function SignInForm() {
   return (
     <form
       action={formAction}
-      className="flex flex-col justify-center items-center gap-5 bg-gray-900 min-h-screen"
+      className="flex flex-col justify-center items-center gap-5 bg-gray-900 px-4 py-10 flex-1"
     >
-      <div className="w-sm">
+      <div className="w-full max-w-sm">
         <h1 className="mt-10 font-bold text-white text-2xl/9 text-center">
           Sign in to your account
         </h1>
       </div>
 
-      <div className="flex flex-col gap-1.5 w-sm">
+      <div className="flex flex-col gap-1.5 w-full max-w-sm">
         <label
           htmlFor="email"
           className="block font-medium text-gray-100 text-sm"
@@ -34,7 +34,7 @@ export default function SignInForm() {
         />
       </div>
 
-      <div className="flex flex-col gap-1.5 w-sm">
+      <div className="flex flex-col gap-1.5 w-full max-w-sm">
         <label
           htmlFor="password"
           className="block font-medium text-gray-100 text-sm"
@@ -60,7 +60,7 @@ export default function SignInForm() {
       <button
         type="submit"
         disabled={isPending}
-        className="flex justify-center bg-indigo-500 hover:bg-indigo-400 px-3 py-1.5 rounded-md w-sm font-semibold text-white text-sm/6"
+        className="flex justify-center bg-indigo-500 hover:bg-indigo-400 px-3 py-1.5 rounded-md w-full max-w-sm font-semibold text-white text-sm/6"
       >
         Sign in
       </button>
